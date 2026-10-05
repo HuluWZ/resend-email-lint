@@ -12,6 +12,14 @@
     "resend"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HuluWZ/resend-email-lint.git"
+  },
+  "homepage": "https://github.com/HuluWZ/resend-email-lint#readme",
+  "bugs": {
+    "url": "https://github.com/HuluWZ/resend-email-lint/issues"
+  },
   "author": "Hulunlante Worku",
   "type": "module",
   "engines": {
