@@ -34,8 +34,8 @@
     }
   },
   "bin": {
-    "resend-email-lint": "./dist/cli.js",
-    "resend-email-lint-mcp": "./dist/mcp.js"
+    "resend-email-lint": "dist/cli.js",
+    "resend-email-lint-mcp": "dist/mcp.js"
   },
   "files": [
     "dist",
