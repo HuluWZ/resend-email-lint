@@ -65,9 +65,15 @@ import { Resend } from "resend";
 import { lintHtml } from "resend-email-lint";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const { errorCount, diagnostics } = lintHtml(html);
-if (errorCount > 0) throw new Error(JSON.stringify(diagnostics));
+const { diagnostics } = lintHtml(html);
+if (diagnostics.length > 0) throw new Error(JSON.stringify(diagnostics));
 await resend.emails.send({ from, to, subject, html });
+```
+
+This guard fails on warnings as well as errors. Some warnings matter at send time: `html-size` means Gmail will clip the message and hide the footer and unsubscribe link. To block only errors plus oversized HTML, filter instead:
+
+```ts
+const blocking = diagnostics.filter((d) => d.severity === "error" || d.rule === "html-size");
 ```
 
 `lintHtml` is pure and synchronous: no I/O, no network.
