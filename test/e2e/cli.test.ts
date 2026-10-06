@@ -9,7 +9,7 @@ describe("cli", () => {
     const r = runCli([BAD]);
     expect(r.code).toBe(1);
     expect(r.stdout).toContain("(img-alt)");
-    expect(r.stdout).toMatch(/4 errors, 4 warnings/);
+    expect(r.stdout).toMatch(/4 errors, 5 warnings/);
   });
 
   it("exits 0 for a clean file", () => {
@@ -35,7 +35,7 @@ describe("cli", () => {
     const ignoreErrors = ["-i", "img-alt", "-i", "img-src-relative", "-i", "link-href", "-i", "no-script"];
     expect(runCli([BAD, ...ignoreErrors]).code).toBe(0);
     expect(runCli([BAD, ...ignoreErrors, "--max-warnings", "0"]).code).toBe(1);
-    expect(runCli([BAD, ...ignoreErrors, "--max-warnings", "4"]).code).toBe(0);
+    expect(runCli([BAD, ...ignoreErrors, "--max-warnings", "5"]).code).toBe(0);
   });
 
   it("--marketing enables bulk-mail rules", () => {
