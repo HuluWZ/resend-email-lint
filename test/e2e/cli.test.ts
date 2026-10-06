@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT, runCli } from "../helpers/cli.js";
 
@@ -22,7 +23,7 @@ describe("cli", () => {
     const r = runCli(["examples", "-f", "json"]);
     expect(r.code).toBe(1);
     const files = (JSON.parse(r.stdout) as { file: string }[]).map((x) => x.file);
-    expect(files).toEqual(["examples/bad.html", "examples/good.html"]);
+    expect(files).toEqual([join("examples", "bad.html"), join("examples", "good.html")]);
   });
 
   it("lints stdin with -", () => {
