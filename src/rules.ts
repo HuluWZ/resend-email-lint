@@ -58,6 +58,22 @@ export const rules: Rule[] = [
     },
   },
   {
+    id: "img-dimensions",
+    severity: "warning",
+    description: "Images need width and height attributes; Outlook on Windows ignores CSS sizes.",
+    check({ root, report }) {
+      for (const img of root.querySelectorAll("img")) {
+        const missing = ["width", "height"].filter((a) => !img.hasAttribute(a));
+        if (missing.length > 0) {
+          report(
+            start(img),
+            `Image has no ${missing.join(" or ")} attribute. Outlook ignores CSS sizes and may render it at its natural size.`,
+          );
+        }
+      }
+    },
+  },
+  {
     id: "link-href",
     severity: "error",
     description: "Links need a real destination.",

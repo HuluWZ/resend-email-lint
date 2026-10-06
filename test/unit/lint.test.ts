@@ -5,7 +5,7 @@ const ids = (html: string, opts = {}) => lintHtml(html, opts).diagnostics.map((d
 
 const GOOD_DOC = `<!DOCTYPE html>
 <html lang="en"><head><title>Welcome</title></head>
-<body><img src="https://cdn.example.com/a.png" alt="Logo"><a href="https://example.com">Go</a></body></html>`;
+<body><img src="https://cdn.example.com/a.png" alt="Logo" width="120" height="40"><a href="https://example.com">Go</a></body></html>`;
 
 describe("lintHtml", () => {
   it("passes a clean document", () => {
@@ -25,6 +25,17 @@ describe("lintHtml", () => {
     for (const src of ["https://x.co/a.png", "cid:logo", "data:image/png;base64,AAA", "//x.co/a.png"]) {
       expect(ids(`<img src="${src}" alt="">`)).not.toContain("img-src-relative");
     }
+  });
+
+  it("warns on images missing width or height", () => {
+    const msg = (html: string) => lintHtml(html).diagnostics.find((d) => d.rule === "img-dimensions");
+    expect(msg('<img src="https://x.co/a.png" alt="" height="40">')).toMatchObject({
+      severity: "warning",
+      message: expect.stringMatching(/no width attribute.*Outlook/),
+    });
+    expect(msg('<img src="https://x.co/a.png" alt="" width="120">')?.message).toMatch(/no height attribute/);
+    expect(msg('<img src="https://x.co/a.png" alt="">')?.message).toMatch(/no width or height attribute/);
+    expect(msg('<img src="https://x.co/a.png" alt="" width="120" height="40">')).toBeUndefined();
   });
 
   it("flags empty, hash and javascript links", () => {
@@ -67,7 +78,7 @@ describe("lintHtml", () => {
   });
 
   it("honours ignore", () => {
-    expect(ids('<img src="https://x.co/a.png">', { ignore: ["img-alt"] })).toEqual([]);
+    expect(ids('<img src="https://x.co/a.png">', { ignore: ["img-alt", "img-dimensions"] })).toEqual([]);
   });
 
   it("reports 1-based line and column", () => {
@@ -76,7 +87,7 @@ describe("lintHtml", () => {
   });
 
   it("sorts diagnostics by position and counts severities", () => {
-    const r = lintHtml('<a href="http://x.co">x</a>\n<img src="https://x.co/a.png">');
+    const r = lintHtml('<a href="http://x.co">x</a>\n<img src="https://x.co/a.png" width="1" height="1">');
     expect(r.diagnostics.map((d) => d.line)).toEqual([1, 2]);
     expect(r.errorCount).toBe(1);
     expect(r.warningCount).toBe(1);
