@@ -22,10 +22,11 @@ examples/bad.html
   1:1  warning  Missing <!DOCTYPE html>.  (missing-doctype)
   3:3  error    Image has no alt attribute. Add alt="" if it is decorative.  (img-alt)
   3:3  error    Image src "/logo.png" is relative. Use an absolute https:// URL or a cid: reference.  (img-src-relative)
+  3:3  warning  Image has no width or height attribute. Outlook ignores CSS sizes and may render it at its natural size.  (img-dimensions)
   5:3  error    Link has an empty href.  (link-href)
   6:3  error    <script> is not supported in email and will be removed.  (no-script)
 
-4 errors, 4 warnings
+4 errors, 5 warnings
 ```
 
 Exit codes: `0` clean, `1` lint errors (or too many warnings), `2` usage or I/O error.
@@ -110,6 +111,7 @@ filesystem, network or environment access, and caps input at 2 MB, so handing it
 | `img-src-relative`    | error    | Image URL is absolute (or `cid:` / `data:`)              |
 | `link-href`           | error    | Links have a real href (not empty, `#` or `javascript:`) |
 | `no-script`           | error    | No `<script>`                                            |
+| `img-dimensions`      | warning  | `<img>` has `width` and `height` attributes (Outlook)    |
 | `link-https`          | warning  | Links use https                                          |
 | `no-external-css`     | warning  | No external stylesheets                                  |
 | `html-size`           | warning  | Under Gmail's 102 KB clipping limit                      |

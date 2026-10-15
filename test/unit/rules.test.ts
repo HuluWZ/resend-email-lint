@@ -15,7 +15,7 @@ describe("diagnostic positions", () => {
   });
 
   it("sorts diagnostics by position", () => {
-    const r = lintHtml('<script></script>\n<img src="https://x.co/a.png">');
+    const r = lintHtml('<script></script>\n<img src="https://x.co/a.png" width="1" height="1">');
     expect(r.diagnostics.map((d) => d.line)).toEqual([1, 2]);
   });
 });
