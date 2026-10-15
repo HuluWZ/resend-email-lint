@@ -37,5 +37,12 @@ npx resend-email-lint ./out/emails --marketing --max-warnings 0
 ## Setup
 
 ```json
-{ "mcpServers": { "resend-email-lint": { "command": "npx", "args": ["-y", "-p", "resend-email-lint", "resend-email-lint-mcp"] } } }
+{
+  "mcpServers": {
+    "resend-email-lint": {
+      "command": "npx",
+      "args": ["-y", "-p", "resend-email-lint", "resend-email-lint-mcp"]
+    }
+  }
+}
 ```
