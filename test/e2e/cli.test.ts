@@ -1,3 +1,5 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT, runCli } from "../helpers/cli.js";
@@ -42,6 +44,29 @@ describe("cli", () => {
   it("--marketing enables bulk-mail rules", () => {
     expect(runCli([GOOD]).stdout).not.toContain("missing-unsubscribe");
     expect(runCli([GOOD, "--marketing"]).stdout).toContain("missing-unsubscribe");
+  });
+
+  it("reads .emaillintrc.json and lets CLI flags add to it", () => {
+    const dir = mkdtempSync(join(tmpdir(), "emaillint-"));
+    const html = join(ROOT, GOOD);
+    writeFileSync(
+      join(dir, ".emaillintrc.json"),
+      JSON.stringify({ marketing: true, ignore: ["missing-unsubscribe"] }),
+    );
+    expect(runCli([html], undefined, dir).stdout).not.toContain("missing-unsubscribe");
+    writeFileSync(join(dir, ".emaillintrc.json"), JSON.stringify({ marketing: true }));
+    expect(runCli([html], undefined, dir).stdout).toContain("missing-unsubscribe");
+    expect(runCli([html, "-i", "missing-unsubscribe"], undefined, dir).stdout).not.toContain(
+      "missing-unsubscribe",
+    );
+  });
+
+  it("exits 2 on an invalid config", () => {
+    const dir = mkdtempSync(join(tmpdir(), "emaillint-"));
+    writeFileSync(join(dir, ".emaillintrc.json"), '{"ignore":"html-lang"}');
+    const r = runCli([join(ROOT, GOOD)], undefined, dir);
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain("ignore must be an array");
   });
 
   it("--list-rules and --help exit 0", () => {
