@@ -1,6 +1,6 @@
 {
   "name": "resend-email-lint",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Lint email HTML before you send it. One rule set, three interfaces: a library, a CLI for CI, and an MCP server for agents.",
   "keywords": [
     "email",
