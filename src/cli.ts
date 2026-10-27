@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { collectFiles, readStdin } from "./files.js";
 import { formatJson, formatText, type FileResult } from "./format.js";
@@ -20,9 +21,46 @@ Options:
       --list-rules           Print all rules and exit
   -h, --help                 Show this help
 
+Config: reads .emaillintrc.json from the current directory if present
+  ({ "ignore": ["html-lang"], "marketing": true, "maxWarnings": 0 }). CLI flags override it.
+
 Exit codes: 0 clean, 1 lint errors found, 2 usage or I/O error.
 
 Note: lint rendered HTML. For React Email, render first (e.g. \`email export\`).`;
+
+interface Config {
+  ignore?: string[];
+  marketing?: boolean;
+  maxWarnings?: number;
+}
+
+/** Reads .emaillintrc.json from the cwd. Returns {} when absent; throws on invalid content. */
+async function loadConfig(): Promise<Config> {
+  let raw: string;
+  try {
+    raw = await readFile(resolve(".emaillintrc.json"), "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw err;
+  }
+  let c: Config;
+  try {
+    c = JSON.parse(raw) as Config;
+  } catch {
+    throw new Error(".emaillintrc.json is not valid JSON.");
+  }
+  const { ignore, marketing, maxWarnings } = c;
+  if (ignore !== undefined && !(Array.isArray(ignore) && ignore.every((i) => typeof i === "string"))) {
+    throw new Error(".emaillintrc.json: ignore must be an array of rule ids.");
+  }
+  if (marketing !== undefined && typeof marketing !== "boolean") {
+    throw new Error(".emaillintrc.json: marketing must be a boolean.");
+  }
+  if (maxWarnings !== undefined && !(Number.isInteger(maxWarnings) && maxWarnings >= 0)) {
+    throw new Error(".emaillintrc.json: maxWarnings must be a non-negative integer.");
+  }
+  return c;
+}
 
 async function main(): Promise<number> {
   const { values, positionals } = parseArgs({
@@ -51,12 +89,14 @@ async function main(): Promise<number> {
     console.error(`Unknown format "${values.format}". Use text or json.`);
     return 2;
   }
-  const unknown = (values.ignore ?? []).filter((id) => !ruleIds.includes(id));
+  const config = await loadConfig();
+  const ignore = [...(config.ignore ?? []), ...(values.ignore ?? [])];
+  const unknown = ignore.filter((id) => !ruleIds.includes(id));
   if (unknown.length > 0) {
     console.error(`Unknown rule(s): ${unknown.join(", ")}. Run --list-rules.`);
     return 2;
   }
-  let maxWarnings = Infinity;
+  let maxWarnings = config.maxWarnings ?? Infinity;
   if (values["max-warnings"] !== undefined) {
     maxWarnings = Number(values["max-warnings"]);
     if (!Number.isInteger(maxWarnings) || maxWarnings < 0) {
@@ -69,7 +109,7 @@ async function main(): Promise<number> {
     return 2;
   }
 
-  const options = { marketing: values.marketing, ignore: values.ignore };
+  const options = { marketing: values.marketing || config.marketing, ignore };
   const results: FileResult[] = [];
 
   if (positionals.length === 1 && positionals[0] === "-") {

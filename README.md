@@ -41,6 +41,12 @@ Exit codes: `0` clean, `1` lint errors (or too many warnings), `2` usage or I/O 
 
 Read from stdin with `-`: `cat email.html | npx resend-email-lint -`
 
+**Config:** commit a `.emaillintrc.json` in the directory you run from. `ignore` is added to any `-i` flags; `--max-warnings` overrides `maxWarnings`.
+
+```json
+{ "ignore": ["html-lang"], "marketing": true, "maxWarnings": 0 }
+```
+
 **React Email:** lint the rendered HTML, not the `.tsx`. Render first (for example with `email export`, or `render()` from
 `@react-email/render`), then point the CLI at the output.
 
