@@ -56,3 +56,45 @@ describe("other rules", () => {
     expect(ids("<script></script>", { ignore: ["no-script"] })).toEqual([]);
   });
 });
+
+describe("client compatibility rules", () => {
+  const ids = (html: string) => lintHtml(html).diagnostics.map((d) => d.rule);
+
+  it("css-unsupported flags flex, grid and positioning in style attrs and <style>", () => {
+    expect(ids('<div style="display:flex">x</div>')).toContain("css-unsupported");
+    expect(ids('<div style="Position: absolute">x</div>')).toContain("css-unsupported");
+    expect(ids("<style>.a{display:grid}</style>")).toContain("css-unsupported");
+    expect(ids('<div style="display:block;position:relative">x</div>')).not.toContain("css-unsupported");
+  });
+
+  it("style-in-body flags <style> in the body only", () => {
+    const doc = (head: string, body: string) =>
+      `<!doctype html><html lang="en"><head>${head}</head><body>${body}</body></html>`;
+    expect(ids(doc("", "<style>a{}</style>"))).toContain("style-in-body");
+    expect(ids(doc("<style>a{}</style>", ""))).not.toContain("style-in-body");
+  });
+
+  it("table-role flags layout tables without a role", () => {
+    expect(ids("<table><tr><td>x</td></tr></table>")).toContain("table-role");
+    expect(ids('<table role="presentation"><tr><td>x</td></tr></table>')).not.toContain("table-role");
+    expect(ids("<table><tr><th>x</th></tr></table>")).not.toContain("table-role");
+  });
+
+  it("link-text flags generic link text only", () => {
+    expect(ids('<a href="https://x.co"> Click Here </a>')).toContain("link-text");
+    expect(ids('<a href="https://x.co">Reset your password</a>')).not.toContain("link-text");
+    expect(
+      ids('<a href="https://x.co"><img src="https://x.co/a.png" alt="" width="1" height="1"></a>'),
+    ).not.toContain("link-text");
+  });
+});
+
+describe("inline disables", () => {
+  it("silences listed rules on the next line only", () => {
+    const html =
+      '<!-- email-lint-disable-next-line img-alt, img-dimensions -->\n<img src="https://x.co/a.png">\n<img src="https://x.co/b.png">';
+    const r = lintHtml(html).diagnostics;
+    expect(r.every((d) => d.line === 3)).toBe(true);
+    expect(r.map((d) => d.rule)).toContain("img-alt");
+  });
+});

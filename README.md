@@ -124,9 +124,15 @@ filesystem, network or environment access, and caps input at 2 MB, so handing it
 | `missing-doctype`     | warning  | Documents declare a doctype                              |
 | `html-lang`           | warning  | `<html lang>` is set                                     |
 | `missing-title`       | warning  | `<title>` is present                                     |
+| `css-unsupported`     | warning  | No `flex`, `grid` or `position` (Gmail, Outlook)         |
+| `style-in-body`       | warning  | `<style>` lives in `<head>`, not `<body>`                |
+| `table-role`          | warning  | Layout tables have a `role`                              |
+| `link-text`           | warning  | Link text is not "click here" or "read more"             |
 | `missing-unsubscribe` | warning  | Unsubscribe link present (`--marketing` only)            |
 
 Document-level rules only run when the input contains an `<html>` tag, so fragments are not flagged.
+
+Silence rules on one line with a comment: `<!-- email-lint-disable-next-line img-alt, link-text -->`.
 
 ## Contributing
 

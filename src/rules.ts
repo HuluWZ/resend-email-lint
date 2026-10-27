@@ -183,6 +183,61 @@ export const rules: Rule[] = [
       }
     },
   },
+  {
+    id: "css-unsupported",
+    severity: "warning",
+    description: "flex, grid and positioned layouts are stripped or ignored by Gmail and Outlook.",
+    check({ root, report }) {
+      // shortcut: matches declarations in style attributes and <style> text, not computed CSS; upgrade if it misfires on real emails.
+      const bad = /(display\s*:\s*(inline-)?(flex|grid)|position\s*:\s*(absolute|fixed|sticky))/i;
+      for (const el of root.querySelectorAll("[style], style")) {
+        const css = el.tagName === "STYLE" ? el.text : (el.getAttribute("style") ?? "");
+        const m = bad.exec(css);
+        if (m) {
+          report(start(el), `"${m[0]}" is not supported in Gmail and Outlook. Use tables for layout.`);
+        }
+      }
+    },
+  },
+  {
+    id: "style-in-body",
+    severity: "warning",
+    description: "<style> must be in <head>; Gmail removes it from the body.",
+    documentOnly: true,
+    check({ root, report }) {
+      for (const s of root.querySelectorAll("body style")) {
+        report(
+          start(s),
+          "<style> in <body> is removed by some clients. Move it to <head> or inline the CSS.",
+        );
+      }
+    },
+  },
+  {
+    id: "table-role",
+    severity: "warning",
+    description: 'Layout tables need role="presentation" so screen readers do not announce them as data.',
+    check({ root, report }) {
+      for (const t of root.querySelectorAll("table")) {
+        if (!t.hasAttribute("role") && !t.querySelector("th")) {
+          report(start(t), 'Table has no role. Add role="presentation" if it is only for layout.');
+        }
+      }
+    },
+  },
+  {
+    id: "link-text",
+    severity: "warning",
+    description: 'Link text such as "click here" tells screen-reader users nothing.',
+    check({ root, report }) {
+      const generic = new Set(["click here", "here", "read more", "more", "link"]);
+      for (const a of root.querySelectorAll("a")) {
+        if (generic.has(a.text.trim().toLowerCase())) {
+          report(start(a), `Link text "${a.text.trim()}" is not descriptive. Say where the link goes.`);
+        }
+      }
+    },
+  },
 ];
 
 export const ruleIds = rules.map((r) => r.id);
